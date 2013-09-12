@@ -1,0 +1,24 @@
+This is the first paragraph.
+
+This is a paragraph
+that contains a <pre>
+
+element with
+
+embedded</pre> blank lines.
+
+This is a paragraph
+that contains a <script>
+
+element with
+
+embedded</script> blank lines.
+
+This is a paragraph
+that contains a <style>
+
+element with
+
+embedded</style> blank lines.
+
+This is the last paragraph.
