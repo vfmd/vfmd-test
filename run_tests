@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import glob
+import re
+import argparse
+import subprocess
+
+ap = argparse.ArgumentParser(description = 'Test a command for complicance with the vfmd spec.')
+
+ap.add_argument('--dir', action='append',
+                help='Glob pattern for directory with testcases (default: \'tests/*/*\')')
+ap.add_argument('--testcase', action='store', metavar='SLUG',
+                help='Glob pattern for testcase (specify filename without \'.md\')')
+ap.add_argument('markdown_command', action='store', metavar='markdown-command',
+                help='Command to test. The command should read Markdown ' +
+                     'from stdin and output XHTML to stdout.')
+args = ap.parse_args()
+
+if not args.dir:
+    args.dir = ["tests/*/*"]
+
+def read_file(filename):
+    with open(filename, 'r') as f:
+        return f.read()
+
+def run_cmd(cmd, input_file):
+    input_file_contents = read_file(input_file)
+    process = subprocess.Popen(cmd.split(),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = process.communicate(input=input_file_contents)
+    if (result[1] or                # something was written to stderr
+        process.returncode != 0):   # non-zero exit code was returned
+        print "Error: \"" + result[1] + "\" when running \"" + cmd + "\" on [" + input_file + "]"
+        return "";
+    return result[0] # return only stdout
+
+def canonical_html(html):
+    xmllint_cmd = "xmllint --c14n --format -"
+    process = subprocess.Popen(xmllint_cmd.split(),
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = process.communicate(input="<html>" + html + "</html>")
+    if (result[1] or                # something was written to stderr
+        process.returncode != 0):   # non-zero exit code was returned
+        # If the html is not well-formed, we can't use xmllint.
+        # Instead, we use a crude hack with the assumption that all
+        # '<' and '>' characters in the html belong to html tags.
+        return re.sub(r'>(\s+)<', r'><', html)
+    return result[0] # return only stdout
+
+pass_count = 0
+fail_count = 0
+error_count = 0
+
+print ""
+
+for tg in args.dir:
+    for t in glob.glob(tg):
+        if (not os.path.isdir(t)):
+            continue
+        t = t.strip('/')
+        if args.testcase:
+            testcases = glob.glob(t + "/" + args.testcase + ".md")
+        else:
+            testcases = glob.glob(t + "/*.md")
+        print t, "(" + str(len(testcases)) + " testcases" + "):"
+        for md in testcases:
+            md_file = md[(len(t) + 1):]
+            slug = md_file[:-3]
+            md_input_file = t + "/" + md_file
+            actual_html_file = t + "/actual/" + slug + ".html"
+            expected_html_file = t + "/expected/" + slug + ".html"
+            if (os.path.isfile(md_input_file) and
+                os.path.isfile(expected_html_file)):
+                # Get the actual and expected outputs
+                actual_html = run_cmd(args.markdown_command, md_input_file).strip()
+                expected_html = read_file(expected_html_file).strip()
+                # Write the actual output to file
+                if not os.path.exists(t + "/actual"):
+                    os.mkdir(t + "/actual")
+                with open(actual_html_file, "w") as f:
+                    f.write(actual_html)
+                # If any of the outputs is null, it indicates an error in testing
+                if (actual_html == "" or expected_html == ""):
+                    error_count += 1
+                    continue
+                # Canonicalize and compare the actual vs expected output
+                if (canonical_html(actual_html) == canonical_html(expected_html)):
+                    print "    PASS:", " ", slug
+                    pass_count += 1
+                else:
+                    print "    FAIL:", "*", slug
+                    fail_count += 1
+        print ""
+
+total_count = pass_count + fail_count + error_count
+if total_count == 0:
+    print "No testcases found"
+else:
+    print "Passed:   {:3} testcases".format(pass_count)
+    print "Failed: * {:3} testcases".format(fail_count)
+    print "Total:    {:3} testcases".format(total_count)
+    if error_count:
+        print "{:3} testcases could not be run".format(error_count)
+    if (total_count != pass_count):
+        sys.exit(1)
+
+sys.exit(0)
