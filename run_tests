@@ -65,6 +65,11 @@ for tg in args.dir:
         else:
             testcases = glob.glob(t + "/*.md")
         print t, "(" + str(len(testcases)) + " testcases" + "):"
+        has_normalize_script = (os.path.isfile(t + "/normalize.py"))
+        if has_normalize_script:
+            old_sys_path = sys.path
+            sys.path.insert(0, t)
+            from normalize import normalize
         for md in testcases:
             md_file = md[(len(t) + 1):]
             slug = md_file[:-3]
@@ -85,6 +90,10 @@ for tg in args.dir:
                 if (actual_html == "" or expected_html == ""):
                     error_count += 1
                     continue
+                # Run the normalizer, if available
+                if has_normalize_script:
+                    actual_html = normalize(slug, actual_html)
+                    expected_html = normalize(slug, expected_html)
                 # Canonicalize and compare the actual vs expected output
                 if (canonical_html(actual_html) == canonical_html(expected_html)):
                     print "    PASS:", " ", slug
@@ -92,6 +101,10 @@ for tg in args.dir:
                 else:
                     print "    FAIL:", "*", slug
                     fail_count += 1
+        if has_normalize_script:
+            if 'normalize' in sys.modules:
+                del(sys.modules['normalize'])
+            sys.path = old_sys_path
         print ""
 
 total_count = pass_count + fail_count + error_count
