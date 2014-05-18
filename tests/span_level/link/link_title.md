@@ -24,7 +24,7 @@
 [ref id5]: url "title with (brackets)"
 [ref id6]: url 'title with (brackets)'
 [ref id7]: url (title)
-[ref id8]: url (title with\(brackets\))
+[ref id8]: url (title with \(brackets\))
 [ref id9]: url
  (title)
 [ref id10]: url

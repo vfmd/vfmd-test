@@ -15,5 +15,5 @@
 [ref3]: url
 1
 
-[ref4]: <url
+[ref4]: <url/
 1>
