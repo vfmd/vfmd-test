@@ -1,0 +1,2 @@
+- http://exampl<e.ne>t/ and <http://exampl<e.ne>t/>
+- someone@exampl<e.ne>t and <someone@exampl<e.ne>t>

@@ -1,0 +1,3 @@
+ - http link: <http://example.net/path/>
+ - https link: <https://example.net/path/>
+ - ftp link: <ftp://example.net/path/>

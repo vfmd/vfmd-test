@@ -1,0 +1,21 @@
+<p>Recognized:</p>
+
+<ul>
+  <li><a href="http://example.net">http://example.net</a> and <a href="http://example.net">http://example.net</a></li>
+  <li><a href="file:///tmp/tmp.html">file:///tmp/tmp.html</a> and <a href="file:///tmp/tmp.html">file:///tmp/tmp.html</a></li>
+  <li><a href="feed://example.net/rss.xml">feed://example.net/rss.xml</a> and <a href="feed://example.net/rss.xml">feed://example.net/rss.xml</a></li>
+  <li><a href="googlechrome://example.net/">googlechrome://example.net/</a> and <a href="googlechrome://example.net/">googlechrome://example.net/</a></li>
+</ul>
+
+<p>Recognized only if within <code>&lt;&gt;</code>:</p>
+
+<ul>
+  <li>mailto:me@example.net <a href="mailto:me@example.net">mailto:me@example.net</a></li>
+</ul>
+
+<p>Not recognized:</p>
+
+<ul>
+  <li>about:plugins and <about:plugins></li>
+  <li>tel:123456790 and <tel:123456790></li>
+</ul>

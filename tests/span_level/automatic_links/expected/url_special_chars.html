@@ -1,0 +1,5 @@
+<p>Special chars should be percent-encoded, but only in href attr:</p>
+<ul>
+  <li><a href="http://example.net/*#$%%5E&amp;%5C%7E/blah">http://example.net/*#$%^&amp;\~/blah</a>) and <a href="http://example.net/*#$%%5E&amp;%5C%7E)/blah">http://example.net/*#$%^&amp;\~)/blah</a></li>
+  <li><a href="http://example.net/blah/">http://example.net/blah/</a>*#$%^&amp;~) and <a href="http://example.net/blah/*#$%%5E&amp;%5C%7E)">http://example.net/blah/*#$%^&amp;\~)</a></li>
+</ul>
