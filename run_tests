@@ -29,6 +29,19 @@ def read_file(filename):
     with open(filename, 'r') as f:
         return f.read()
 
+def is_command_available(cmd, test_input):
+    xmllint_cmd = "xmllin --c14n --format -"
+    try:
+        process = subprocess.Popen(cmd.split(),
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = process.communicate(input=test_input)
+        if (result[1] or                # something was written to stderr
+            process.returncode != 0):   # non-zero exit code was returned
+            return False
+    except OSError:
+        return False
+    return True
+
 def run_cmd(cmd, input_file):
     input_file_contents = read_file(input_file)
     process = subprocess.Popen(cmd.split(),
@@ -52,6 +65,20 @@ def canonical_html(html):
         # '<' and '>' characters in the html belong to html tags.
         return re.sub(r'>(\s+)<', r'><', html)
     return result[0] # return only stdout
+
+# Main
+
+# Check if we have xmllint available. We use that to canonicalize
+# the actual and expected outputs.
+xmllint_cmd = "xmllint --c14n --format -"
+if (not is_command_available(xmllint_cmd, "<html></html>")):
+    print "Error: Unable to run '" + xmllint_cmd + "'"
+    sys.exit(1)
+
+# Check if we are able to run the provided markdown command.
+if (not is_command_available(args.markdown_command, "blah")):
+    print "Error: Unable to run '" + args.markdown_command + "'"
+    sys.exit(1)
 
 pass_count = 0
 fail_count = 0
