@@ -13,6 +13,10 @@ ap.add_argument('--dir', action='append',
                 help='Glob pattern for directory with testcases (default: \'tests/*/*\')')
 ap.add_argument('--testcase', action='store', metavar='SLUG',
                 help='Glob pattern for testcase (specify filename without \'.md\')')
+ap.add_argument('--actual-fails', action='store_true',
+                help='Print output of the given markdown command for failing tests')
+ap.add_argument('--expected-fails', action='store_true',
+                help='Print expected output for failing tests')
 ap.add_argument('markdown_command', action='store', metavar='markdown-command',
                 help='Command to test. The command should read Markdown ' +
                      'from stdin and output XHTML to stdout.')
@@ -92,15 +96,32 @@ for tg in args.dir:
                     continue
                 # Run the normalizer, if available
                 if has_normalize_script:
-                    actual_html = normalize(slug, actual_html)
-                    expected_html = normalize(slug, expected_html)
+                    actual_html_n = normalize(slug, actual_html)
+                    expected_html_n = normalize(slug, expected_html)
+                else:
+                    actual_html_n = actual_html
+                    expected_html_n = expected_html
                 # Canonicalize and compare the actual vs expected output
-                if (canonical_html(actual_html) == canonical_html(expected_html)):
+                passed = (canonical_html(actual_html_n) == canonical_html(expected_html_n))
+                if passed:
                     print "    PASS:", " ", slug
                     pass_count += 1
                 else:
                     print "    FAIL:", "*", slug
                     fail_count += 1
+                # Print test output
+                if (not passed) and (args.actual_fails or args.expected_fails):
+                    if args.actual_fails:
+                        print "ACTUAL OUTPUT:"
+                        print "--------------"
+                        print actual_html
+                        print "--------------"
+                    if args.expected_fails:
+                        print "EXPECTED OUTPUT:"
+                        print "--------------"
+                        print expected_html
+                        print "--------------"
+
         if has_normalize_script:
             if 'normalize' in sys.modules:
                 del(sys.modules['normalize'])
